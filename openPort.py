@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import maya.OpenMaya as om
 
 WINDOW_NAME = 'sy_OpenPortConfMenu'
 
@@ -15,12 +16,12 @@ def openPortConfMenu():
 
         try:
             cmds.commandPort(name=f"localhost:{port}", sourceType=language.lower(), echoOutput=True)
-            print(f"Port {port} opened with {language} support")
+            om.MGlobal.displayInfo(f"Port {port} opened with {language} support")
             
             cmds.deleteUI(window)
 
         except Exception as e:
-            print(f"Error opening port: {e}")
+            cmds.error(f"Error opening port: {e}")
 
     def closePort(*args):
         port = cmds.intField("portInput", query=True, value=True)
@@ -31,12 +32,12 @@ def openPortConfMenu():
 
         try:
             cmds.commandPort(name=f"localhost:{port}", close=True)
-            print(f"Port {port} closed")
+            om.MGlobal.displayInfo(f"Port {port} closed")
             
             cmds.deleteUI(window)
 
         except Exception as e:
-            print(f"Error closing port: {e}")
+            cmds.error(f"Error closing port: {e}")
 
     layout = cmds.formLayout(WINDOW_NAME + "_layout", numberOfDivisions=100)
 
