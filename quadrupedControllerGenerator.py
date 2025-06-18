@@ -53,8 +53,7 @@ def createFKControllers(legJoints: list[str], modelRelativeHorizontalAxes: str, 
             cmds.setAttr(f'{ctrl}.rotate{modelRelativeHorizontalAxes.capitalize()}', 90)
             cmds.makeIdentity(ctrl, rotate=True, apply=True)
         
-        offsetGrp = f'{ctrl}_offset'
-        cmds.group(ctrl, name=offsetGrp)
+        offsetGrp = cmds.group(ctrl, name=f'{ctrl}_offset')
         cmds.matchTransform(offsetGrp, joint, position=True, rotation=True)
 
         if i > 0:
@@ -70,16 +69,14 @@ def createIKControllers(legJoints: list[str], isRear: bool, scaleMulti=1):
 
     # leg IK controller
     footJoint = legJoints[len(legJoints) - 1]
-    ikCtrl = f'{ctrlPrefix}_ik_ctrl'
 
-    ikCtrlOffsetGrp = f'{ikCtrl}_offset'
-    cmds.group(empty=True, name=ikCtrlOffsetGrp)
-    cmds.matchTransform(ikCtrlOffsetGrp, footJoint, position=True, rotation=True)
- 
-    curveGenerator.circle(ikCtrl, 6 * scaleMulti)
+    ikCtrl = curveGenerator.circle(f'{ctrlPrefix}_ik_ctrl', 6 * scaleMulti)
     setControllerColor(ikCtrl)
     cmds.matchTransform(ikCtrl, footJoint, position=True)
     cmds.setAttr(f'{ikCtrl}.translateY', 0)
+    
+    ikCtrlOffsetGrp = cmds.group(empty=True, name=f'{ikCtrl}_offset')
+    cmds.matchTransform(ikCtrlOffsetGrp, footJoint, position=True, rotation=True)
 
     cmds.parent(ikCtrl, ikCtrlOffsetGrp)
     cmds.makeIdentity(ikCtrl, apply=True, translate=True, rotate=True, scale=True, preserveNormals=True, normal=False)
@@ -91,25 +88,20 @@ def createIKControllers(legJoints: list[str], isRear: bool, scaleMulti=1):
 
     # hock controller
     hockJoint = legJoints[len(legJoints) - 2]
-    hockCtrl = f'{ctrlPrefix}_hock_ctrl'
-
-    curveGenerator.cube(hockCtrl, 6 * scaleMulti)
+    hockCtrl = curveGenerator.cube(f'{ctrlPrefix}_hock_ctrl', 6 * scaleMulti)
     setControllerColor(hockCtrl)
 
-    hockCtrlOffsetGrp = f'{hockCtrl}_offset'
-    cmds.group(hockCtrl, name=hockCtrlOffsetGrp)
+    hockCtrlOffsetGrp = cmds.group(hockCtrl, name=f'{hockCtrl}_offset')
     cmds.matchTransform(hockCtrlOffsetGrp, hockJoint, position=True)
 
     cmds.parent(hockCtrlOffsetGrp, ikCtrl)
 
     # pole vector controller
-    pvCtrl = f'{ctrlPrefix}_tibia_ctrl'
-    curveGenerator.pyramid(pvCtrl, 4 * scaleMulti)
+    pvCtrl = curveGenerator.pyramid(f'{ctrlPrefix}_tibia_ctrl', 4 * scaleMulti)
     cmds.setAttr(f'{pvCtrl}.rotateX', -90)
     setControllerColor(pvCtrl)
 
-    pvCtrlOffsetGrp = f'{pvCtrl}_offset'
-    cmds.group(pvCtrl, name=pvCtrlOffsetGrp)
+    pvCtrlOffsetGrp = cmds.group(pvCtrl, name=f'{pvCtrl}_offset')
     cmds.xform(pvCtrlOffsetGrp, centerPivots=True)
     cmds.makeIdentity(pvCtrl, apply=True, rotate=True)
 

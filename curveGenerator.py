@@ -2,8 +2,7 @@ import maya.cmds as cmds
 import math
 
 def circle(name: str, radius=1):
-    cmds.circle(center=(0, 0, 0), normal=(0, 1, 0), sweep=360, tolerance=0, constructionHistory=False, name=name, radius=radius)
-    return name
+    return cmds.circle(center=(0, 0, 0), normal=(0, 1, 0), sweep=360, tolerance=0, constructionHistory=False, name=name, radius=radius)[0]
 
 def cube(name: str, width=1):
     points = [
@@ -25,13 +24,11 @@ def cube(name: str, width=1):
         [ width/2, width/2, -width/2],
     ]
     
-    cmds.curve(name=name, d=1, p=points)
-    cmds.makeIdentity(name, apply=True, t=0, r=0, s=1, n=0)
-    cmds.xform(name, cp=True)
+    curve = cmds.curve(name=name, d=1, p=points)
+    cmds.makeIdentity(curve, apply=True, t=0, r=0, s=1, n=0)
+    cmds.xform(curve, cp=True)
 
-    return name
-
-
+    return curve
 
 def pyramid(name: str, width=1):
     half = width / 2.0
@@ -61,7 +58,7 @@ def text(name: str, text: str):
     curvesGrp = cmds.textCurves(text=text, font="Arial")[0]
     charParents = cmds.listRelatives(curvesGrp)
 
-    cmds.group(empty=True, name=name)
+    rootCurve = cmds.group(empty=True, name=name)
 
     bbox = cmds.exactWorldBoundingBox(curvesGrp)
     centerX = (bbox[0] + bbox[3]) / 2
@@ -73,16 +70,15 @@ def text(name: str, text: str):
         shapeParent = cmds.listRelatives(charParent)
         cmds.parent(*shapeParent, world=True)
         cmds.makeIdentity(*shapeParent, apply=True, translate=True)
-        cmds.parent(*cmds.listRelatives(shapeParent), name, relative=True, shape=True)
+        cmds.parent(*cmds.listRelatives(shapeParent), rootCurve, relative=True, shape=True)
         cmds.delete(shapeParent)
 
     cmds.delete(*charParents, curvesGrp)
 
-    cmds.xform(name, centerPivots=True)
-    cmds.makeIdentity(name, apply=True, translate=True, rotate=True, scale=True)
+    cmds.xform(rootCurve, centerPivots=True)
+    cmds.makeIdentity(rootCurve, apply=True, translate=True, rotate=True, scale=True)
     
-    return name
-
+    return rootCurve
 
 def twoDirArrow(name: str, shaftWidth=1, relative=False):
     shaftHeight = round((shaftWidth if relative else 1) * 0.3, 2)
@@ -106,7 +102,8 @@ def twoDirArrow(name: str, shaftWidth=1, relative=False):
         (-halfShaft - headLength, 0, 0),
     ]
 
-    cmds.curve(name=name, d=1, p=points)
-    cmds.xform(name, centerPivots=True)
+    curve = cmds.curve(name=name, d=1, p=points)
+    cmds.xform(curve, centerPivots=True)
 
-    return name
+    return curve
+
