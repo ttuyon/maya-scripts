@@ -23,3 +23,7 @@ def getHeightInWorld(object: str):
     bbox = cmds.exactWorldBoundingBox(object)
     height = bbox[4] - bbox[1]
     return height
+
+def addSeparatorAttribute(object: str, attrName: str):
+    cmds.addAttr(object, longName=attrName, attributeType='enum', enumName='----------')
+    cmds.setAttr(f'{object}.{attrName}', edit=True, channelBox=True, lock=True)

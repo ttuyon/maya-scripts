@@ -18,6 +18,7 @@ COLOR_INDEX_RED = 13
 COLOR_INDEX_BLUE = 6
 COLOR_INDEX_YELLOW = 17
 COLOR_INDEX_SKYBLUE = 18
+COLOR_INDEX_LIGHTGREEN = 14
 
 def getCtrlColorByName(name):
     if name.startswith("l_"):
@@ -137,8 +138,10 @@ def createFKIKSwitchController(legJoints: list[str], fkRootObj: str, ikRootObj: 
     labelWidth = utils.getWidthInWorld(fkLabel)
     labelHeight = utils.getHeightInWorld(fkLabel)
 
-    switchCtrl = curveGenerator.twoDirArrow(f'{ctrlPrefix}_ctrl', labelWidth * 1.2, True)
+    switchCtrl = curveGenerator.twoDirArrow(f'{ctrlPrefix}_ctrl', labelWidth * 1.2)
     utils.setShapeColor(switchCtrl, COLOR_INDEX_SKYBLUE)
+    cmds.rotate('90deg', 0, 0, switchCtrl)
+    cmds.makeIdentity(switchCtrl, apply=True, rotate=True)
 
     switchCtrlHeight = utils.getHeightInWorld(switchCtrl)
 
@@ -154,6 +157,7 @@ def createFKIKSwitchController(legJoints: list[str], fkRootObj: str, ikRootObj: 
     footJoint = legJoints[len(legJoints) - 1]
     cmds.matchTransform(switchCtrl, footJoint, position=True)
     cmds.move(10 * scaleMulti * (1 if direction == 'l' else -1), 10 * scaleMulti, -5 * scaleMulti, switchCtrl, relative=True)
+    cmds.makeIdentity(switchCtrl, apply=True, translate=True, scale=True)
 
     # add attribute - FK_IK_Switch
     attrName = 'FK_IK_Switch'
@@ -172,10 +176,53 @@ def createFKIKSwitchController(legJoints: list[str], fkRootObj: str, ikRootObj: 
 
     return switchCtrl
 
+def createRootController(scaleMulti: int):
+    # root controller
+    rootCtrl = curveGenerator.radialArrow('root_ctrl', 40 * scaleMulti)
+    utils.setShapeColor(rootCtrl, COLOR_INDEX_LIGHTGREEN)
+
+    rootCtrlGrp = cmds.group(rootCtrl, name='root_grp')
+
+    # root controller - attributes
+    utils.addSeparatorAttribute(rootCtrl, 'TWEAK')
+    for attr in ['Body_Tweak', 'Front_Leg_Tweak', 'Rear_Leg_Tweak']:
+        cmds.addAttr(rootCtrl, longName=attr, attributeType='enum', enumName='Hide:Show')
+        cmds.setAttr(f'{rootCtrl}.{attr}', edit=True, channelBox=True)
+    
+    utils.addSeparatorAttribute(rootCtrl, 'VISIBILITY')
+    for attr in ['Body_Controls', 'Face_Controls', 'Geometry', 'Blendshapes']:
+        cmds.addAttr(rootCtrl, longName=attr, attributeType='enum', enumName='Hide:Show')
+        cmds.setAttr(f'{rootCtrl}.{attr}', edit=True, channelBox=True)
+    
+    utils.addSeparatorAttribute(rootCtrl, 'LOCK')
+    cmds.addAttr(rootCtrl, longName='Models', attributeType='enum', enumName='Unlocked:Wireframe:Locked')
+    cmds.setAttr(f'{rootCtrl}.Models', edit=True, channelBox=True)
+
+    utils.addSeparatorAttribute(rootCtrl, 'DEBUG')
+    for attr in ['Rig_Systems', 'Rig_Deformers', 'Skeleton']:
+        cmds.addAttr(rootCtrl, longName=attr, attributeType='enum', enumName='Hide:Show')
+        cmds.setAttr(f'{rootCtrl}.{attr}', edit=True, channelBox=True)
+
+    # scene direction curve
+    sceneDirCurve = curveGenerator.arrow('scene_direction', 50 * scaleMulti, 50 * scaleMulti, 80 * scaleMulti, 90 * scaleMulti)
+    utils.overrideDisplayTypeToReference(sceneDirCurve)
+
+    # control group
+    cmds.group(rootCtrlGrp, sceneDirCurve, name='controls')
+
+    return rootCtrl
+
 def createControllers(modelRelativeHorizontalAxes: str, isRear: bool, scaleMulti=1):
     legJoints = getLegJoints()
+
+    rootGroup = 'root_ctrl'
+    if not cmds.ls(rootGroup, type='transform'):
+        createRootController(scaleMulti)
+
     fkRoot = createFKControllers(legJoints, modelRelativeHorizontalAxes, scaleMulti)
     ikRoot = createIKControllers(legJoints, isRear, scaleMulti)
     switchRoot = createFKIKSwitchController(legJoints, fkRoot, ikRoot, isRear, scaleMulti)
+
+    cmds.parent(fkRoot, ikRoot, switchRoot, rootGroup)
 
 createControllers('z', False)
