@@ -20,6 +20,8 @@ COLOR_INDEX_YELLOW = 17
 COLOR_INDEX_SKYBLUE = 18
 COLOR_INDEX_LIGHTGREEN = 14
 
+ROOT_CTRL_NAME = 'root_ctrl'
+
 def getCtrlColorByName(name):
     if name.startswith("l_"):
         return COLOR_INDEX_BLUE
@@ -44,7 +46,7 @@ def getLegJoints():
     return joints
 
 def createFKControllers(legJoints: list[str], modelRelativeHorizontalAxes: str, scaleMulti=1):
-    rootObject = None
+    rootObjects = []
 
     for i, joint in enumerate(legJoints):
         ctrl = curveGenerator.circle(f'{joint}_fk_ctrl', 6 * scaleMulti)
@@ -60,11 +62,13 @@ def createFKControllers(legJoints: list[str], modelRelativeHorizontalAxes: str, 
         if i > 0:
             cmds.parent(offsetGrp, f'{legJoints[i - 1]}_fk_ctrl')
         else:
-            rootObject = offsetGrp
+            rootObjects.append(offsetGrp)
     
-    return rootObject
+    return rootObjects
 
-def createIKControllers(legJoints: list[str], isRear: bool, scaleMulti=1):
+def createIKControllers(legJoints: list[str], isRear: bool, scaleMulti=1) -> list[str]:
+    rootObjects = []
+
     direction = legJoints[0][0]
     ctrlPrefix = f"{direction}_leg_{'rear' if isRear else 'front'}"
 
@@ -87,6 +91,8 @@ def createIKControllers(legJoints: list[str], isRear: bool, scaleMulti=1):
     cmds.addAttr(ikCtrl, longName='Stretch_Type', attributeType='enum', enumName='Full:Stretch Only:Squash Only', keyable=True)
     cmds.addAttr(ikCtrl, longName='Stretchiness', attributeType='float', minValue=0, maxValue=1, keyable=True)
 
+    rootObjects.append(ikCtrlOffsetGrp)
+
     # hock controller
     hockJoint = legJoints[len(legJoints) - 2]
     hockCtrl = curveGenerator.cube(f'{ctrlPrefix}_hock_ctrl', 6 * scaleMulti)
@@ -94,8 +100,9 @@ def createIKControllers(legJoints: list[str], isRear: bool, scaleMulti=1):
 
     hockCtrlOffsetGrp = cmds.group(hockCtrl, name=f'{hockCtrl}_offset')
     cmds.matchTransform(hockCtrlOffsetGrp, hockJoint, position=True)
+    cmds.pointConstraint(ikCtrl, hockCtrlOffsetGrp, weight=1, maintainOffset=True)
 
-    cmds.parent(hockCtrlOffsetGrp, ikCtrl)
+    rootObjects.append(hockCtrlOffsetGrp)
 
     # pole vector controller
     pvCtrl = curveGenerator.pyramid(f'{ctrlPrefix}_tibia_ctrl', 4 * scaleMulti)
@@ -108,9 +115,9 @@ def createIKControllers(legJoints: list[str], isRear: bool, scaleMulti=1):
 
     positionPoleVectorCtrl(legJoints[0:3], pvCtrlOffsetGrp)
 
-    cmds.parent(pvCtrlOffsetGrp, ikCtrl)
+    rootObjects.append(pvCtrlOffsetGrp)
 
-    return ikCtrlOffsetGrp
+    return rootObjects
 
 def positionPoleVectorCtrl(joints: list[str], ctrlOffsetGrp: str):
     if len(joints) != 3:
@@ -125,7 +132,7 @@ def positionPoleVectorCtrl(joints: list[str], ctrlOffsetGrp: str):
     cmds.delete(tempConstraint, tempTriangle)
 
 
-def createFKIKSwitchController(legJoints: list[str], fkRootObj: str, ikRootObj: str, isRear: bool, scaleMulti=1):
+def createFKIKSwitchController(legJoints: list[str], fkRootObjs: list[str], ikRootObjs: list[str], isRear: bool, scaleMulti=1):
     direction = legJoints[0][0]
     ctrlPrefix = f"{direction}_leg_{'rear' if isRear else 'front'}"
 
@@ -162,23 +169,52 @@ def createFKIKSwitchController(legJoints: list[str], fkRootObj: str, ikRootObj: 
     # add attribute - FK_IK_Switch
     attrName = 'FK_IK_Switch'
     cmds.addAttr(switchCtrl, longName=attrName, attributeType='float', minValue=0, maxValue=1, keyable=True)
-    cmds.connectAttr(f'{switchCtrl}.{attrName}', f'{ikRootObj}.visibility')
+    for ikRootObj in ikRootObjs:
+        cmds.connectAttr(f'{switchCtrl}.{attrName}', f'{ikRootObj}.visibility')
     cmds.connectAttr(f'{switchCtrl}.{attrName}', f'{ikLabel}.visibility')
     
     reverseNode = f'{ctrlPrefix}_fkik_reverse'
     cmds.shadingNode('reverse', asUtility=True, name=reverseNode)
     cmds.connectAttr(f'{switchCtrl}.{attrName}', f'{reverseNode}.inputX')
-    cmds.connectAttr(f'{reverseNode}.outputX', f'{fkRootObj}.visibility')
+    for fkRootObj in fkRootObjs:
+        cmds.connectAttr(f'{reverseNode}.outputX', f'{fkRootObj}.visibility')
     cmds.connectAttr(f'{reverseNode}.outputX', f'{fkLabel}.visibility')
 
     # add attribute - volume offset
-    cmds.addAttr(switchCtrl, longName='Volume_Offset', attributeType='float', minValue=-0.5, maxValue=3.0, keyable=True, defaultValue=0.5)
+    cmds.addAttr(switchCtrl, longName='Volume_Offset', attributeType='float', minValue=-0.5, maxValue=3.0, keyable=True, defaultValue=-0.5)
 
-    return switchCtrl
+    return [switchCtrl]
 
-def createRootController(scaleMulti: int):
+def createRootController(scaleMulti: int) -> str:
+    # base group structure
+    rigGrp = cmds.group(empty=True, name='rig_grp')
+
+    doNotTouchGrp = cmds.group(empty=True, name='DO_NOT_TOUCH')
+    cmds.parent(doNotTouchGrp, rigGrp)
+
+    geometryGrp = cmds.group(empty=True, name='geometry')
+    cmds.parent(geometryGrp, doNotTouchGrp)
+
+    animGeometryGrp = cmds.group(empty=True, name='anim_geometry')
+    blendshapesGrp = cmds.group(empty=True, name='blendshapes')
+    cmds.parent(animGeometryGrp, blendshapesGrp, geometryGrp)
+
+    rigDeformersGrp = cmds.group(empty=True, name='rig_deformers')
+    cmds.parent(rigDeformersGrp, doNotTouchGrp)
+    rigSystemsGrp = cmds.group(empty=True, name='rig_systems')
+    cmds.parent(rigSystemsGrp, doNotTouchGrp)
+
+    visualAidsGrp = cmds.group(empty=True, name='visual_aids')
+    cmds.parent(visualAidsGrp, doNotTouchGrp)
+
+    connectionLinesGrp = cmds.group(empty=True, name='connection_lines')
+    cmds.parent(connectionLinesGrp, visualAidsGrp)
+    
+    exportSkeletonGrp = cmds.group(empty=True, name='export_skeleton')
+    cmds.parent(exportSkeletonGrp, doNotTouchGrp)
+
     # root controller
-    rootCtrl = curveGenerator.radialArrow('root_ctrl', 40 * scaleMulti)
+    rootCtrl = curveGenerator.radialArrow(ROOT_CTRL_NAME, 40 * scaleMulti)
     utils.setShapeColor(rootCtrl, COLOR_INDEX_LIGHTGREEN)
 
     rootCtrlGrp = cmds.group(rootCtrl, name='root_grp')
@@ -203,26 +239,34 @@ def createRootController(scaleMulti: int):
         cmds.addAttr(rootCtrl, longName=attr, attributeType='enum', enumName='Hide:Show')
         cmds.setAttr(f'{rootCtrl}.{attr}', edit=True, channelBox=True)
 
+    # root controller - attributes - connect
+    cmds.connectAttr(f'{rootCtrl}.Geometry', f'{animGeometryGrp}.visibility')
+    cmds.connectAttr(f'{rootCtrl}.Blendshapes', f'{blendshapesGrp}.visibility')
+    cmds.connectAttr(f'{rootCtrl}.Rig_Systems', f'{rigSystemsGrp}.visibility')
+    cmds.connectAttr(f'{rootCtrl}.Rig_Deformers', f'{rigDeformersGrp}.visibility')
+    cmds.connectAttr(f'{rootCtrl}.Skeleton', f'{exportSkeletonGrp}.visibility')
+
     # scene direction curve
     sceneDirCurve = curveGenerator.arrow('scene_direction', 50 * scaleMulti, 50 * scaleMulti, 80 * scaleMulti, 90 * scaleMulti)
     utils.overrideDisplayTypeToReference(sceneDirCurve)
 
-    # control group
-    cmds.group(rootCtrlGrp, sceneDirCurve, name='controls')
+    # controls group
+    controlsGrp = cmds.group(rootCtrlGrp, sceneDirCurve, name='controls')
+    cmds.parent(controlsGrp, rigGrp)
 
     return rootCtrl
 
 def createControllers(modelRelativeHorizontalAxes: str, isRear: bool, scaleMulti=1):
     legJoints = getLegJoints()
 
-    rootGroup = 'root_ctrl'
+    rootGroup = ROOT_CTRL_NAME
     if not cmds.ls(rootGroup, type='transform'):
-        createRootController(scaleMulti)
+        rootGroup = createRootController(scaleMulti)
 
-    fkRoot = createFKControllers(legJoints, modelRelativeHorizontalAxes, scaleMulti)
-    ikRoot = createIKControllers(legJoints, isRear, scaleMulti)
-    switchRoot = createFKIKSwitchController(legJoints, fkRoot, ikRoot, isRear, scaleMulti)
+    fkRoots = createFKControllers(legJoints, modelRelativeHorizontalAxes, scaleMulti)
+    ikRoots = createIKControllers(legJoints, isRear, scaleMulti)
+    switchRoots = createFKIKSwitchController(legJoints, fkRoots, ikRoots, isRear, scaleMulti)
 
-    cmds.parent(fkRoot, ikRoot, switchRoot, rootGroup)
+    cmds.parent(*fkRoots, *ikRoots, *switchRoots, rootGroup)
 
 createControllers('z', False)
