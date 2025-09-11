@@ -82,6 +82,33 @@ def openSuyeonToolkit():
 
     cmds.separator(style='none', height=GROUP_SPACING)
 
+    # ################# paint skin weights - reset rotation, remove keyframe
+    
+    # 구분선
+    cmds.rowLayout(numberOfColumns=2, adjustableColumn=2, columnWidth2=(100, 100), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
+    cmds.text(label='Paint Skin Weights', align='left', font='boldLabelFont')
+    cmds.separator(style='in')
+    cmds.setParent('..')
+
+    # 버튼
+    
+    cmds.button(label="Reset Rotation", command=lambda *_: resetRotationValue())
+
+    formLayout = cmds.formLayout(numberOfDivisions=100)
+
+    btnLabel = cmds.text(label="Remove keyframe", align="left", height=22)
+    removeCurrKeyframeBtn = cmds.button(label="Current", command=lambda *_: removeKeyframes(False))
+    removeKeyframesBtn = cmds.button(label="All", command=lambda *_: removeKeyframes(True))
+
+    cmds.formLayout(formLayout, edit=True,
+                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 2, 33),
+                                    (removeCurrKeyframeBtn, 'left', 0, 33), (removeCurrKeyframeBtn, 'right', 2, 66), 
+                                    (removeKeyframesBtn, 'left', 2, 66), (removeKeyframesBtn, 'right', 0, 100)])
+
+    cmds.setParent('..')
+
+    cmds.separator(style='none', height=GROUP_SPACING)
+
     # ################# joint influence lock/unlock
     
     # 구분선
@@ -171,3 +198,19 @@ def toggleJointsInfluenceLock(lock):
             cmds.setAttr(joint + ".liw", lock)
 
     om.MGlobal.displayInfo(f"All joint influences have been {'locked' if lock else 'unlocked'}.")
+
+def resetRotationValue():
+    for sel in cmds.ls(selection=True):
+        cmds.setAttr(f"{sel}.rx", 0)
+        cmds.setAttr(f"{sel}.ry", 0)
+        cmds.setAttr(f"{sel}.rz", 0)
+
+def removeKeyframes(all):
+    currentTime = cmds.currentTime(query=True)
+    time = (None, None) if all else (currentTime, currentTime)
+
+    for sel in cmds.ls(selection=True):
+        cmds.cutKey(sel, clear=True, time=time)
+
+
+openSuyeonToolkit()
