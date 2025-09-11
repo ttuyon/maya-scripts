@@ -5,6 +5,8 @@ import maya.api.OpenMaya as om
 # UI
 #------------------------------------------------------------------
 
+GROUP_SPACING = 1
+
 def openSuyeonToolkit():
     win = 'sy_Toolkit'
 
@@ -13,7 +15,7 @@ def openSuyeonToolkit():
 
     cmds.window(win, title='Suyeon Toolkit', resizeToFitChildren=True)
 
-    cmds.columnLayout(adjustableColumn=True, margins=10)
+    cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
 
     ################# open/close port
 
@@ -22,8 +24,6 @@ def openSuyeonToolkit():
     cmds.text(label='Port Config', align='left', font='boldLabelFont')
     cmds.separator(style='in')
     cmds.setParent('..')
-
-    cmds.separator(style='none', height=10)
 
     # 폼
     formLayout = cmds.formLayout(numberOfDivisions=100, margins=10)
@@ -49,14 +49,13 @@ def openSuyeonToolkit():
                     attachPosition=[(portField, 'right', 10, 50),
                                     (langLabel, 'left', 0, 50),
                                     (langMenu, 'right', 0, 100),
-                                    (closeBtn, 'left', 0, 0), (closeBtn, 'right', 2, 25), 
-                                    (openBtn, 'left', 2, 25), (openBtn, 'right', 0, 100)])
+                                    (closeBtn, 'left', 0, 0), (closeBtn, 'right', 2, 50), 
+                                    (openBtn, 'left', 2, 50), (openBtn, 'right', 0, 100)])
     
 
     cmds.setParent('..')
 
-    
-    cmds.separator(style='none', height=20)
+    cmds.separator(style='none', height=GROUP_SPACING)
 
     # ################# attribute lock/unlock
     
@@ -65,8 +64,6 @@ def openSuyeonToolkit():
     cmds.text(label='Lock/Unlock Attributes', align='left', font='boldLabelFont')
     cmds.separator(style='in')
     cmds.setParent('..')
-
-    cmds.separator(style='none', height=10)
 
     # 폼
     formLayout = cmds.formLayout(numberOfDivisions=100)
@@ -83,7 +80,7 @@ def openSuyeonToolkit():
                                     (unlockAttrBtn, 'left', 2, 50), (unlockAttrBtn, 'right', 0, 100)])
     cmds.setParent('..')
 
-    cmds.separator(style='none', height=20)
+    cmds.separator(style='none', height=GROUP_SPACING)
 
     # ################# joint influence lock/unlock
     
@@ -92,8 +89,6 @@ def openSuyeonToolkit():
     cmds.text(label='Lock/Unlock Joints Influence', align='left', font='boldLabelFont')
     cmds.separator(style='in')
     cmds.setParent('..')
-
-    cmds.separator(style='none', height=10)
 
     # 버튼
     formLayout = cmds.formLayout(numberOfDivisions=100)
