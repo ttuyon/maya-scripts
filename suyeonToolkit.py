@@ -90,10 +90,10 @@ def openSuyeonToolkit():
     cmds.separator(style='in')
     cmds.setParent('..')
 
-    # 버튼
-    
+    # 버튼 - 회전값 초기화
     cmds.button(label="Reset Rotation", command=lambda *_: resetRotationValue())
 
+    # 버튼 - 키프레임 제거
     formLayout = cmds.formLayout(numberOfDivisions=100)
 
     btnLabel = cmds.text(label="Remove keyframe", align="left", height=22)
@@ -102,8 +102,8 @@ def openSuyeonToolkit():
 
     cmds.formLayout(formLayout, edit=True,
                     attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 2, 33),
-                                    (removeCurrKeyframeBtn, 'left', 0, 33), (removeCurrKeyframeBtn, 'right', 2, 66), 
-                                    (removeKeyframesBtn, 'left', 2, 66), (removeKeyframesBtn, 'right', 0, 100)])
+                                    (removeKeyframesBtn, 'left', 0, 33), (removeKeyframesBtn, 'right', 2, 66), 
+                                    (removeCurrKeyframeBtn, 'left', 2, 66), (removeCurrKeyframeBtn, 'right', 0, 100)])
 
     cmds.setParent('..')
 
