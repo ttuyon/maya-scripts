@@ -90,6 +90,9 @@ def openSuyeonToolkit():
     cmds.separator(style='in')
     cmds.setParent('..')
 
+    # 버튼 - 뷰포트 내 조인트 visibility 토글
+    cmds.button(label="Toggle Joints Visibility", command=lambda *_: toggleJointsVisibility())
+
     # 버튼 - 회전값 초기화
     cmds.button(label="Reset Rotation", command=lambda *_: resetRotationValue())
 
@@ -212,5 +215,11 @@ def removeKeyframes(all):
     for sel in cmds.ls(selection=True):
         cmds.cutKey(sel, clear=True, time=time)
 
+def toggleJointsVisibility():
+    panel = cmds.getPanel(withFocus=True)
+    
+    if 'modelPanel' in panel:
+        isVisible = cmds.modelEditor(panel, query=True, joints=True)
+        cmds.modelEditor(panel, edit=True, joints=not isVisible)
 
 openSuyeonToolkit()
