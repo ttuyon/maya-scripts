@@ -4,9 +4,6 @@ import maya.api.OpenMaya as om
 #------------------------------------------------------------------
 # UI
 #------------------------------------------------------------------
-
-GROUP_SPACING = 1
-
 def openSuyeonToolkit():
     win = 'sy_Toolkit'
 
@@ -14,18 +11,24 @@ def openSuyeonToolkit():
         cmds.deleteUI(win)
 
     cmds.window(win, title='Suyeon Toolkit', resizeToFitChildren=True)
+    
+    formLayout = cmds.formLayout()
+    tabLayout = cmds.tabLayout(innerMarginHeight=5, innerMarginWidth=5)
+    
+    cmds.formLayout(formLayout, edit=True, attachForm=((tabLayout, 'top', 0), (tabLayout, 'left', 0), (tabLayout, 'bottom', 0), (tabLayout, 'right', 0)) )
 
-    cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
+    skinTab = createSkinTab()
+    miscTab = createMiscTab()
+    portTab = createPortTab()
 
-    ################# open/close port
+    cmds.tabLayout(tabLayout, edit=True, tabLabel=((skinTab, 'Skin'), (portTab, 'Port'), (miscTab, 'Misc')))
 
-    # 구분선
-    cmds.rowLayout(numberOfColumns=2, adjustableColumn=2, columnWidth2=(60, 100), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
-    cmds.text(label='Port Config', align='left', font='boldLabelFont')
-    cmds.separator(style='in')
-    cmds.setParent('..')
+    cmds.showWindow(win)
 
-    # 폼
+
+def createPortTab():
+    layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
+
     formLayout = cmds.formLayout(numberOfDivisions=100, margins=10)
 
     portLabel = cmds.text(label='Port', align='left', height=20)
@@ -49,23 +52,23 @@ def openSuyeonToolkit():
                     attachPosition=[(portField, 'right', 10, 50),
                                     (langLabel, 'left', 0, 50),
                                     (langMenu, 'right', 0, 100),
-                                    (closeBtn, 'left', 0, 0), (closeBtn, 'right', 2, 50), 
-                                    (openBtn, 'left', 2, 50), (openBtn, 'right', 0, 100)])
+                                    (closeBtn, 'left', 0, 0), (closeBtn, 'right', 5, 50), 
+                                    (openBtn, 'left', 5, 50), (openBtn, 'right', 0, 100)])
     
 
     cmds.setParent('..')
+    cmds.setParent('..')
 
-    cmds.separator(style='none', height=GROUP_SPACING)
+    return layout
 
-    # ################# attribute lock/unlock
-    
-    # 구분선
+def createMiscTab():
+    layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
+
     cmds.rowLayout(numberOfColumns=2, adjustableColumn=2, columnWidth2=(120, 100), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
     cmds.text(label='Lock/Unlock Attributes', align='left', font='boldLabelFont')
     cmds.separator(style='in')
     cmds.setParent('..')
 
-    # 폼
     formLayout = cmds.formLayout(numberOfDivisions=100)
 
     checkboxGrp = cmds.checkBoxGrp(numberOfCheckBoxes=4, columnWidth4=[75, 60, 50, 60], labelArray4=['Transform', 'Rotate', 'Scale', 'Visibility'])
@@ -76,22 +79,16 @@ def openSuyeonToolkit():
     cmds.formLayout(formLayout, edit=True, 
                     attachControl=[(lockAttrBtn, 'top', 10, checkboxGrp), 
                                    (unlockAttrBtn, 'top', 10, checkboxGrp)],
-                    attachPosition=[(lockAttrBtn, 'left', 0, 0), (lockAttrBtn, 'right', 2, 50), 
-                                    (unlockAttrBtn, 'left', 2, 50), (unlockAttrBtn, 'right', 0, 100)])
-    cmds.setParent('..')
-
-    cmds.separator(style='none', height=GROUP_SPACING)
-
-    # ################# paint skin weights - reset rotation, remove keyframe
+                    attachPosition=[(lockAttrBtn, 'left', 0, 0), (lockAttrBtn, 'right', 5, 50), 
+                                    (unlockAttrBtn, 'left', 5, 50), (unlockAttrBtn, 'right', 0, 100)])
     
-    # 구분선
-    cmds.rowLayout(numberOfColumns=2, adjustableColumn=2, columnWidth2=(100, 100), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
-    cmds.text(label='Paint Skin Weights', align='left', font='boldLabelFont')
-    cmds.separator(style='in')
+    cmds.setParent('..')
     cmds.setParent('..')
 
-    # 버튼 - 뷰포트 내 조인트 visibility 토글
-    cmds.button(label="Toggle Joints Visibility", command=lambda *_: toggleJointsVisibility())
+    return layout
+
+def createSkinTab():
+    layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
 
     # 버튼 - 회전값 초기화
     cmds.button(label="Reset Rotation", command=lambda *_: resetRotationValue())
@@ -99,40 +96,40 @@ def openSuyeonToolkit():
     # 버튼 - 키프레임 제거
     formLayout = cmds.formLayout(numberOfDivisions=100)
 
-    btnLabel = cmds.text(label="Remove keyframe", align="left", height=22)
+    btnLabel = cmds.text(label="Remove keyframe", font="boldLabelFont", align="left", height=22)
     removeCurrKeyframeBtn = cmds.button(label="Current", command=lambda *_: removeKeyframes(False))
     removeKeyframesBtn = cmds.button(label="All", command=lambda *_: removeKeyframes(True))
 
     cmds.formLayout(formLayout, edit=True,
-                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 2, 33),
-                                    (removeKeyframesBtn, 'left', 0, 33), (removeKeyframesBtn, 'right', 2, 66), 
-                                    (removeCurrKeyframeBtn, 'left', 2, 66), (removeCurrKeyframeBtn, 'right', 0, 100)])
+                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 5, 33),
+                                    (removeKeyframesBtn, 'left', 0, 33), (removeKeyframesBtn, 'right', 5, 66), 
+                                    (removeCurrKeyframeBtn, 'left', 5, 66), (removeCurrKeyframeBtn, 'right', 0, 100)])
 
     cmds.setParent('..')
 
-    cmds.separator(style='none', height=GROUP_SPACING)
-
-    # ################# joint influence lock/unlock
-    
-    # 구분선
-    cmds.rowLayout(numberOfColumns=2, adjustableColumn=2, columnWidth2=(150, 100), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
-    cmds.text(label='Lock/Unlock Joints Influence', align='left', font='boldLabelFont')
     cmds.separator(style='in')
-    cmds.setParent('..')
 
-    # 버튼
+    # 버튼 - 뷰포트 내 조인트 visibility 토글
+    cmds.button(label="Toggle Joints Visibility", command=lambda *_: toggleJointsVisibility())
+
+    cmds.separator(style='in')
+
+    # 버튼 - 인플루언스 락, 언락
     formLayout = cmds.formLayout(numberOfDivisions=100)
-    
+
+    btnLabel = cmds.text(label="Joints influence", font="boldLabelFont", align="left", height=22)
     lockBtn = cmds.button(label="Lock", command=lambda *_: toggleJointsInfluenceLock(True))
     unlockBtn = cmds.button(label="Unlock", command=lambda *_: toggleJointsInfluenceLock(False))
 
     cmds.formLayout(formLayout, edit=True,
-                    attachPosition=[(lockBtn, 'left', 0, 0), (lockBtn, 'right', 2, 50), 
-                                    (unlockBtn, 'left', 2, 50), (unlockBtn, 'right', 0, 100)])
-
+                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 5, 33),
+                                    (lockBtn, 'left', 0, 33), (lockBtn, 'right', 5, 66), 
+                                    (unlockBtn, 'left', 5, 66), (unlockBtn, 'right', 0, 100)])
+    
+    cmds.setParent('..')
     cmds.setParent('..')
 
-    cmds.showWindow(win)
+    return layout
 
 #------------------------------------------------------------------
 # Button Actions
