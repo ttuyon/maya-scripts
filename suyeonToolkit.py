@@ -91,7 +91,24 @@ def createSkinTab():
     layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
 
     # 버튼 - 회전값 초기화
-    cmds.button(label="Reset Rotation", command=lambda *_: resetRotationValue())
+    cmds.text(label='Reset Transform', font='boldLabelFont', align='left')
+
+    formLayout = cmds.formLayout(numberOfDivisions=100)
+
+    resetTranslateBtn = cmds.button(label='Translate', command=lambda *_: resetTransformValue('translate'))
+    resetRotateBtn = cmds.button(label='Rotate', command=lambda *_: resetTransformValue('rotate'))
+    resetScaleBtn = cmds.button(label='Scale', command=lambda *_: resetTransformValue('scale'))
+    resetAllBtn = cmds.button(label='All', command=lambda *_: resetTransformValue())
+
+    cmds.formLayout(formLayout, edit=True, 
+                    attachPosition=[(resetAllBtn, 'left', 0, 0), (resetAllBtn, 'right', 0, 25),
+                                    (resetScaleBtn, 'left', 0, 25), (resetScaleBtn, 'right', 0, 50),
+                                    (resetTranslateBtn, 'left', 0, 50), (resetTranslateBtn, 'right', 0, 75),
+                                    (resetRotateBtn, 'left', 0, 75), (resetRotateBtn, 'right', 0, 100)])
+    
+    cmds.setParent('..')
+
+    cmds.separator(style='in')
 
     # 버튼 - 키프레임 제거
     formLayout = cmds.formLayout(numberOfDivisions=100)
@@ -170,7 +187,7 @@ def toggleAttributeLock(lock, checkboxGrp):
     locked = lock
     keyable = not lock
 
-    selections = cmds.ls(selection=True,transforms=True, allPaths=True)
+    selections = cmds.ls(selection=True, transforms=True)
 
     for sel in selections:
         if checkValues[0]:
@@ -199,11 +216,16 @@ def toggleJointsInfluenceLock(lock):
 
     om.MGlobal.displayInfo(f"All joint influences have been {'locked' if lock else 'unlocked'}.")
 
-def resetRotationValue():
+def resetTransformValue(type = None):
     for sel in cmds.ls(selection=True):
-        cmds.setAttr(f"{sel}.rx", 0)
-        cmds.setAttr(f"{sel}.ry", 0)
-        cmds.setAttr(f"{sel}.rz", 0)
+        if type is None or type == 'translate':
+            cmds.setAttr(f'{sel}.translate', 0, 0, 0)
+
+        if type is None or type == 'rotate':
+            cmds.setAttr(f'{sel}.rotate', 0, 0, 0)
+        
+        if type is None or type == 'scale':
+            cmds.setAttr(f'{sel}.scale', 1, 1, 1)
 
 def removeKeyframes(all):
     currentTime = cmds.currentTime(query=True)
