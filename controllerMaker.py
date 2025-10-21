@@ -156,7 +156,7 @@ def changeColor(color, obj = None):
 
 def createCurve(type):
     if type == "Circle":
-        return cmds.circle(c=(0,0,0), nr=(0,1,0), sw=360, r=1, d=3, ut=0, tol=0.01, s=8, ch=0)
+        return cmds.circle(c=(0,0,0), nr=(0,1,0), sw=360, r=1, d=3, ut=0, tol=0.01, s=8, ch=0)[0]
     
     if type == "Square":
         return cmds.curve(d=1, p=[(-1,0,-1), (-1,0,1), (1,0,1), (1,0,-1), (-1,0,-1)], 
