@@ -110,6 +110,9 @@ def controllerMaker():
 
     def onCreateBtnClick():
         selectedRadioBtn = cmds.radioCollection(shapeRadioCollection, query=True, select=True)
+        if selectedRadioBtn == 'NONE':
+            cmds.error('Please select a shape')
+            return
         shape = cmds.radioButton(selectedRadioBtn, query=True, label=True)
         color = getSelectedColor()
         lockVisibility = cmds.checkBox(lockVisibilityCheckbox, query=True, value=True)
