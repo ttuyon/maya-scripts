@@ -266,7 +266,10 @@ def toggleJointsVisibility():
 
 def setLocalRotationAxisVisibility(visible):
     for sel in cmds.ls(selection=True):
-        cmds.setAttr(f'{sel}.displayLocalAxis', visible)
+        try:
+            cmds.setAttr(f'{sel}.displayLocalAxis', visible)
+        except:
+            continue
 
 def selectJointHierarchy():
     parents = cmds.ls(selection=True)
