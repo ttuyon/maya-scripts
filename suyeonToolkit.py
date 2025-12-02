@@ -64,10 +64,8 @@ def createPortTab():
 def createMiscTab():
     layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
 
-    cmds.rowLayout(numberOfColumns=2, adjustableColumn=2, columnWidth2=(120, 100), columnAttach=[(1, 'both', 0), (2, 'both', 0)])
+    # 채널 창 숨김/표시
     cmds.text(label='Lock/Unlock Attributes', align='left', font='boldLabelFont')
-    cmds.separator(style='in')
-    cmds.setParent('..')
 
     formLayout = cmds.formLayout(numberOfDivisions=100)
 
@@ -83,6 +81,29 @@ def createMiscTab():
                                     (unlockAttrBtn, 'left', 5, 50), (unlockAttrBtn, 'right', 0, 100)])
     
     cmds.setParent('..')
+
+    cmds.separator(style='in')
+
+    # 선택된 오브젝트의 Local Rotation Axis 가시성 설정
+    formLayout = cmds.formLayout(numberOfDivisions=100)
+
+    btnLabel = cmds.text(label="Local Rotation Axis", font="boldLabelFont", align="left", height=22)
+    showLRABtn = cmds.button(label="Show", command=lambda *_: setLocalRotationAxisVisibility(True))
+    hideLRABtn = cmds.button(label="Hide", command=lambda *_: setLocalRotationAxisVisibility(False))
+
+    cmds.formLayout(formLayout, edit=True,
+                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 5, 40),
+                                    (showLRABtn, 'left', 0, 40), (showLRABtn, 'right', 5, 70), 
+                                    (hideLRABtn, 'left', 5, 70), (hideLRABtn, 'right', 0, 100)])
+
+    cmds.setParent('..')
+
+    cmds.separator(style='in')
+
+    # 특정 타입의 자식 노드만 선택
+    # IDEA: 현재 선택된 오브젝트의 타입을 가져와서 그 노드를 선택하는 기능, 프리셋 드롭다운에 특정 노드 타입들 나열하여 선택 가능하도록
+    cmds.button(label="Select Joint Hierarchy", command=lambda *_: selectJointHierarchy())
+
     cmds.setParent('..')
 
     return layout
@@ -240,5 +261,26 @@ def toggleJointsVisibility():
     if 'modelPanel' in panel:
         isVisible = cmds.modelEditor(panel, query=True, joints=True)
         cmds.modelEditor(panel, edit=True, joints=not isVisible)
+
+def setLocalRotationAxisVisibility(visible):
+    for sel in cmds.ls(selection=True):
+        cmds.setAttr(f'{sel}.displayLocalAxis', visible)
+
+def selectJointHierarchy():
+    parents = cmds.ls(selection=True)
+    hierarchy = []
+
+    for parent in parents:
+        children = cmds.listRelatives(parent, allDescendents=True, fullPath=True)
+
+        if children is not None:
+            hierarchy += children
+
+    joints = [obj for obj in hierarchy if cmds.objectType(obj) == 'joint']
+
+    if joints:
+        cmds.select(joints, replace=True)
+    else:
+        cmds.select(clear=True)
 
 openSuyeonToolkit()
