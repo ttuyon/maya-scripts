@@ -1,10 +1,15 @@
 import maya.cmds as cmds
 
-parent = cmds.ls(selection=True)[0]
+parents = cmds.ls(selection=True)
+hierarchy = []
 
-children = cmds.listRelatives(parent, allDescendents=True, fullPath=True)
+for parent in parents:
+    children = cmds.listRelatives(parent, allDescendents=True, fullPath=True)
 
-joints = [obj for obj in children if cmds.objectType(obj) == 'joint']
+    if children is not None:
+        hierarchy += children
+
+joints = [obj for obj in hierarchy if cmds.objectType(obj) == 'joint']
 
 if joints:
     cmds.select(joints, replace=True)
