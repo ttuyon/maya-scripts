@@ -29,6 +29,8 @@ def openSuyeonToolkit():
 def createPortTab():
     layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
 
+    cmds.text(label='Command Port Config', align='left', font='boldLabelFont')
+
     formLayout = cmds.formLayout(numberOfDivisions=100, margins=10)
 
     portLabel = cmds.text(label='Port', align='left', height=20)
@@ -139,9 +141,9 @@ def createSkinTab():
     removeKeyframesBtn = cmds.button(label="All", command=lambda *_: removeKeyframes(True))
 
     cmds.formLayout(formLayout, edit=True,
-                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 5, 33),
-                                    (removeKeyframesBtn, 'left', 0, 33), (removeKeyframesBtn, 'right', 5, 66), 
-                                    (removeCurrKeyframeBtn, 'left', 5, 66), (removeCurrKeyframeBtn, 'right', 0, 100)])
+                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 5, 40),
+                                    (removeKeyframesBtn, 'left', 0, 40), (removeKeyframesBtn, 'right', 5, 70), 
+                                    (removeCurrKeyframeBtn, 'left', 5, 70), (removeCurrKeyframeBtn, 'right', 0, 100)])
 
     cmds.setParent('..')
 
@@ -160,9 +162,9 @@ def createSkinTab():
     unlockBtn = cmds.button(label="Unlock", command=lambda *_: toggleJointsInfluenceLock(False))
 
     cmds.formLayout(formLayout, edit=True,
-                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 5, 33),
-                                    (lockBtn, 'left', 0, 33), (lockBtn, 'right', 5, 66), 
-                                    (unlockBtn, 'left', 5, 66), (unlockBtn, 'right', 0, 100)])
+                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 5, 40),
+                                    (lockBtn, 'left', 0, 40), (lockBtn, 'right', 5, 70), 
+                                    (unlockBtn, 'left', 5, 70), (unlockBtn, 'right', 0, 100)])
     
     cmds.setParent('..')
     cmds.setParent('..')
