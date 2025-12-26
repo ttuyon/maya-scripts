@@ -154,8 +154,17 @@ def createSkinTab():
 
     cmds.separator(style='in')
 
-    # 버튼 - 뷰포트 내 조인트 visibility 토글
-    cmds.button(label="Toggle Joints Visibility", command=lambda *_: toggleJointsVisibility())
+    # 버튼 - 뷰포트 내 조인트 visibility 토글, x-ray 모드 토글
+    formLayout = cmds.formLayout(numberOfDivisions=100)
+
+    xRayBtn = cmds.button(label="Toggle X-Ray", command=lambda *_: toggleXRayMode())
+    jntVisibilityBtn = cmds.button(label="Toggle Joints Visibility", command=lambda *_: toggleJointsVisibility())
+
+    cmds.formLayout(formLayout, edit=True, 
+                    attachPosition=[(xRayBtn, 'left', 0, 0), (xRayBtn, 'right', 5, 50), 
+                                    (jntVisibilityBtn, 'left', 5, 50), (jntVisibilityBtn, 'right', 0, 100)])
+    
+    cmds.setParent('..')
 
     cmds.separator(style='in')
 
@@ -268,6 +277,13 @@ def toggleJointsVisibility():
     if 'modelPanel' in panel:
         isVisible = cmds.modelEditor(panel, query=True, joints=True)
         cmds.modelEditor(panel, edit=True, joints=not isVisible)
+
+def toggleXRayMode():
+    panel = cmds.getPanel(withFocus=True)
+    
+    if 'modelPanel' in panel:
+        isXRayMode = cmds.modelEditor(panel, query=True, xray=True)
+        cmds.modelEditor(panel, edit=True, xray=not isXRayMode)
 
 def setLocalRotationAxisVisibility(visible):
     for sel in cmds.ls(selection=True):
