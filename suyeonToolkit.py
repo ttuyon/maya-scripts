@@ -106,6 +106,11 @@ def createMiscTab():
     # IDEA: 현재 선택된 오브젝트의 타입을 가져와서 그 노드를 선택하는 기능, 프리셋 드롭다운에 특정 노드 타입들 나열하여 선택 가능하도록
     cmds.button(label="Select Joint Hierarchy", command=lambda *_: selectJointHierarchy())
 
+    cmds.separator(style='in')
+    
+    # 여러 개의 커브를 하나로 만들기
+    cmds.button(label="Combine Curves", command=lambda *_: combineCurves())
+
     cmds.setParent('..')
 
     return layout
@@ -287,5 +292,24 @@ def selectJointHierarchy():
         cmds.select(joints, replace=True)
     else:
         cmds.select(clear=True)
+
+def combineCurves():
+    shapeTransforms = cmds.ls(selection=True)
+    shapes = []
+    
+    for transform in shapeTransforms:
+        shapes += cmds.listRelatives(transform, shapes=True)
+    
+    if len(shapes) == 0:
+        return
+    
+    cmds.makeIdentity(shapes, apply=True, translate=True, rotate=True, scale=True, normal=False, preserveNormals=True)
+    cmds.delete(shapes, constructionHistory=True)
+
+    result = cmds.createNode('transform', name='curve')
+
+    cmds.parent(shapes, result, relative=True, shape=True)
+
+    cmds.delete(shapeTransforms)
 
 openSuyeonToolkit()
