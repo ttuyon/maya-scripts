@@ -102,14 +102,44 @@ def createMiscTab():
 
     cmds.separator(style='in')
 
+    formLayout = cmds.formLayout(numberOfDivisions=100)
+
     # 특정 타입의 자식 노드만 선택
     # IDEA: 현재 선택된 오브젝트의 타입을 가져와서 그 노드를 선택하는 기능, 프리셋 드롭다운에 특정 노드 타입들 나열하여 선택 가능하도록
-    cmds.button(label="Select Joint Hierarchy", command=lambda *_: selectJointHierarchy())
-
-    cmds.separator(style='in')
+    selJntHierBtn = cmds.button(label="Select Joint Hierarchy", command=lambda *_: selectJointHierarchy())
     
     # 여러 개의 커브를 하나로 만들기
-    cmds.button(label="Combine Curves", command=lambda *_: combineCurves())
+    combineCrvBtn = cmds.button(label="Combine Curves", command=lambda *_: combineCurves())
+
+    cmds.formLayout(formLayout, edit=True, 
+                    attachPosition=[(selJntHierBtn, 'left', 0, 0), (selJntHierBtn, 'right', 5, 50), 
+                                    (combineCrvBtn, 'left', 5, 50), (combineCrvBtn, 'right', 0, 100)])
+    
+    cmds.setParent('..')
+
+    cmds.separator(style='in')
+
+    # 이름 바꾸기
+    cmds.text(label='Rename Selected with Numbers', align='left', font='boldLabelFont')
+
+    cmds.rowLayout(adjustableColumn=1, numberOfColumns=2, generalSpacing=5)
+    formLayout = cmds.formLayout(numberOfDivisions=100)
+
+    prefixField = cmds.textField(height=24, placeholderText='prefix')
+    suffixField = cmds.textField(height=24, placeholderText='suffix')
+    numLabel = cmds.text(label='{Sel Num}', align='left', height=20)
+
+    cmds.formLayout(formLayout, edit=True,
+                    attachForm=[(prefixField, 'top', 0), (prefixField, 'left', 0), (suffixField, 'right', 0)],
+                    attachControl=[(prefixField, 'right', 5, numLabel), 
+                                   (suffixField, 'left', 5, numLabel)],
+                    attachPosition=[(numLabel, 'left', 0, 50)])
+
+    cmds.setParent('..')
+
+    cmds.button(label="Rename", width=70, command=lambda *_: renameSelections(prefixField, suffixField))
+
+    cmds.setParent('..')
 
     cmds.setParent('..')
 
@@ -327,5 +357,13 @@ def combineCurves():
     cmds.parent(shapes, result, relative=True, shape=True)
 
     cmds.delete(shapeTransforms)
+
+def renameSelections(prefixField, suffixField):
+    prefix = cmds.textField(prefixField, query=True, text=True)
+    suffix = cmds.textField(suffixField, query=True, text=True)
+
+    for num, sel in enumerate(cmds.ls(selection=True), start=1):
+        cmds.rename(sel, f'{prefix}{num}{suffix}')
+        
 
 openSuyeonToolkit()
