@@ -18,15 +18,15 @@ def openSuyeonToolkit():
     cmds.formLayout(formLayout, edit=True, attachForm=((tabLayout, 'top', 0), (tabLayout, 'left', 0), (tabLayout, 'bottom', 0), (tabLayout, 'right', 0)) )
 
     skinTab = createSkinTab()
+    rigTab = createRigTab()
     miscTab = createMiscTab()
-    portTab = createPortTab()
 
-    cmds.tabLayout(tabLayout, edit=True, tabLabel=((skinTab, 'Skin'), (portTab, 'Port'), (miscTab, 'Misc')))
+    cmds.tabLayout(tabLayout, edit=True, tabLabel=((skinTab, 'Skin'), (miscTab, 'Misc'), (rigTab, 'Rig')))
 
     cmds.showWindow(win)
 
 
-def createPortTab():
+def createMiscTab():
     layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
 
     cmds.text(label='Command Port Config', align='left', font='boldLabelFont')
@@ -63,7 +63,7 @@ def createPortTab():
 
     return layout
 
-def createMiscTab():
+def createRigTab():
     layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
 
     # 채널 창 숨김/표시
@@ -195,22 +195,6 @@ def createSkinTab():
                                     (jntVisibilityBtn, 'left', 5, 50), (jntVisibilityBtn, 'right', 0, 100)])
     
     cmds.setParent('..')
-
-    cmds.separator(style='in')
-
-    # 버튼 - 인플루언스 락, 언락
-    formLayout = cmds.formLayout(numberOfDivisions=100)
-
-    btnLabel = cmds.text(label="Joints influence", font="boldLabelFont", align="left", height=22)
-    lockBtn = cmds.button(label="Lock", command=lambda *_: toggleJointsInfluenceLock(True))
-    unlockBtn = cmds.button(label="Unlock", command=lambda *_: toggleJointsInfluenceLock(False))
-
-    cmds.formLayout(formLayout, edit=True,
-                    attachPosition=[(btnLabel, 'left', 0, 0), (btnLabel, 'right', 5, 40),
-                                    (lockBtn, 'left', 0, 40), (lockBtn, 'right', 5, 70), 
-                                    (unlockBtn, 'left', 5, 70), (unlockBtn, 'right', 0, 100)])
-    
-    cmds.setParent('..')
     cmds.setParent('..')
 
     return layout
@@ -274,14 +258,6 @@ def toggleAttributeLock(lock, checkboxGrp):
             
         if checkValues[3]:                                    
             cmds.setAttr((sel + ".v"), k=keyable, l=locked)
-    
-
-def toggleJointsInfluenceLock(lock):
-    for joint in cmds.ls(type='joint'):
-        if cmds.attributeQuery('liw', node=joint, exists=True):
-            cmds.setAttr(joint + ".liw", lock)
-
-    om.MGlobal.displayInfo(f"All joint influences have been {'locked' if lock else 'unlocked'}.")
 
 def resetTransformValue(type = None):
     for sel in cmds.ls(selection=True):
