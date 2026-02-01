@@ -338,8 +338,8 @@ def renameSelections(prefixField, suffixField):
     prefix = cmds.textField(prefixField, query=True, text=True)
     suffix = cmds.textField(suffixField, query=True, text=True)
 
-    for num, sel in enumerate(cmds.ls(selection=True), start=1):
-        cmds.rename(sel, f'{prefix}{num}{suffix}')
+    for num, sel in enumerate(cmds.ls(selection=True, uuid=True), start=1):
+        cmds.rename(cmds.ls(sel), f'{prefix}{num}{suffix}')
         
 
 openSuyeonToolkit()
