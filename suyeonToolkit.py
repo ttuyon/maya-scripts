@@ -148,7 +148,7 @@ def createRigTab():
 def createSkinTab():
     layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
 
-    # 버튼 - 회전값 초기화
+    # 트랜스폼 값 초기화
     cmds.text(label='Reset Transform', font='boldLabelFont', align='left')
 
     formLayout = cmds.formLayout(numberOfDivisions=100)
@@ -168,7 +168,7 @@ def createSkinTab():
 
     cmds.separator(style='in')
 
-    # 버튼 - 키프레임 제거
+    # 키프레임 제거
     formLayout = cmds.formLayout(numberOfDivisions=100)
 
     btnLabel = cmds.text(label="Remove keyframe", font="boldLabelFont", align="left", height=22)
@@ -184,7 +184,7 @@ def createSkinTab():
 
     cmds.separator(style='in')
 
-    # 버튼 - 뷰포트 내 조인트 visibility 토글, x-ray 모드 토글
+    # 뷰포트 내 조인트 visibility 토글, x-ray 모드 토글
     formLayout = cmds.formLayout(numberOfDivisions=100)
 
     xRayBtn = cmds.button(label="Toggle X-Ray", command=lambda *_: toggleXRayMode())
@@ -195,6 +195,25 @@ def createSkinTab():
                                     (jntVisibilityBtn, 'left', 5, 50), (jntVisibilityBtn, 'right', 0, 100)])
     
     cmds.setParent('..')
+
+    cmds.separator(style='in')
+
+    # 더미 컨트롤러 생성
+    cmds.text(label='Create Dummy Ctrl', font='boldLabelFont', align='left')
+
+    cmds.rowLayout(adjustableColumn=5, numberOfColumns=5, generalSpacing=5)
+    cmds.text(label='Forward Axis')
+    
+    fwdAxisRadioCollection = cmds.radioCollection()
+    cmds.radioButton(label='X', select=True)
+    cmds.radioButton(label='Y')
+    cmds.radioButton(label='Z')
+
+    cmds.button(label="Create", command=lambda *_: createDummyController(fwdAxisRadioCollection))
+
+    cmds.setParent('..')
+
+
     cmds.setParent('..')
 
     return layout
@@ -341,5 +360,35 @@ def renameSelections(prefixField, suffixField):
     for num, sel in enumerate(cmds.ls(selection=True, uuid=True), start=1):
         cmds.rename(cmds.ls(sel), f'{prefix}{num}{suffix}')
         
+def createDummyController(fwdAxisRadioCollection):
+    selectedBtn = cmds.radioCollection(fwdAxisRadioCollection, query=True, select=True)
+    fwdAxis = cmds.radioButton(selectedBtn, query=True, label=True)
+    
+    if fwdAxis == 'X':
+        normal = (1, 0, 0)
+    elif fwdAxis == 'Y':
+        normal = (0, 1, 0)
+    else:
+        normal = (0, 0, 1)
+    
+    for drivenObj in cmds.ls(selection=True):
+        ctrl = f'{drivenObj}_DummyCtrl'
+        group = f'{drivenObj}DummyCtrl_Grp'
 
+        if cmds.objExists(ctrl):
+            cmds.setAttr(f'{ctrl}.translate', 0, 0, 0)
+            cmds.setAttr(f'{ctrl}.rotate', 0, 0, 0)
+        else:
+            ctrl = cmds.circle(name=ctrl, normal=normal, constructionHistory=False)[0]
+            cmds.setAttr(f"{ctrl}.overrideEnabled", True)
+            cmds.setAttr(f"{ctrl}.overrideColor", 13)    
+
+        if not cmds.objExists(group):
+            group = cmds.group(ctrl, name=group)
+
+        cmds.matchTransform(group, drivenObj, rotation=True, position=True)
+        cmds.parentConstraint(ctrl, drivenObj, maintainOffset=True)
+
+    cmds.select(clear=True)
+    
 openSuyeonToolkit()
