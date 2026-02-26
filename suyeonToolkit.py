@@ -171,7 +171,7 @@ def createSkinTab():
     # 키프레임 제거
     formLayout = cmds.formLayout(numberOfDivisions=100)
 
-    btnLabel = cmds.text(label="Remove keyframe", font="boldLabelFont", align="left", height=22)
+    btnLabel = cmds.text(label="Remove Keyframe", font="boldLabelFont", align="left", height=22)
     removeCurrKeyframeBtn = cmds.button(label="Current", command=lambda *_: removeKeyframes(False))
     removeKeyframesBtn = cmds.button(label="All", command=lambda *_: removeKeyframes(True))
 
