@@ -4,14 +4,7 @@ import maya.api.OpenMaya as om
 #------------------------------------------------------------------
 # UI
 #------------------------------------------------------------------
-def openSuyeonToolkit():
-    win = 'sy_Toolkit'
-
-    if cmds.window(win, exists=True):
-        cmds.deleteUI(win)
-
-    cmds.window(win, title='Suyeon Toolkit', resizeToFitChildren=True)
-    
+def createUI():
     formLayout = cmds.formLayout()
     tabLayout = cmds.tabLayout(innerMarginHeight=5, innerMarginWidth=5)
     
@@ -23,8 +16,15 @@ def openSuyeonToolkit():
 
     cmds.tabLayout(tabLayout, edit=True, tabLabel=((skinTab, 'Skin'), (miscTab, 'Misc'), (rigTab, 'Rig')))
 
-    cmds.showWindow(win)
+def openSuyeonToolkit():
+    win = 'sy_Toolkit'
 
+    if cmds.window(win, exists=True):
+        cmds.deleteUI(win)
+
+    cmds.window(win, title='Suyeon Toolkit', resizeToFitChildren=True)
+    createUI()
+    cmds.showWindow(win)
 
 def createMiscTab():
     layout = cmds.columnLayout(adjustableColumn=True, margins=10, rowSpacing=10)
