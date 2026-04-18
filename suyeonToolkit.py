@@ -117,6 +117,20 @@ def createRigTab():
     
     cmds.setParent('..')
 
+    formLayout = cmds.formLayout(numberOfDivisions=100)
+
+    # 오프셋 부모 만들기
+    createParentBtn = cmds.button(label="Create Parent", command=lambda *_: createParent())
+    
+    # MatchTransform
+    matXFormEachBtn = cmds.button(label="Match xform Each", command=lambda *_: matchTransformEach())
+
+    cmds.formLayout(formLayout, edit=True, 
+                    attachPosition=[(createParentBtn, 'left', 0, 0), (createParentBtn, 'right', 5, 50), 
+                                    (matXFormEachBtn, 'left', 5, 50), (matXFormEachBtn, 'right', 0, 100)])
+
+    cmds.setParent('..')
+
     cmds.separator(style='in')
 
     # 이름 바꾸기
@@ -390,5 +404,43 @@ def createDummyController(fwdAxisRadioCollection):
         cmds.parentConstraint(ctrl, drivenObj, maintainOffset=True)
 
     cmds.select(clear=True)
+
+def createParent():
+    sel = cmds.ls(selection=True)
+    parents = []
+
+    for obj in sel:
+        parentName = obj + "_parent"
+        parentGrp = cmds.group(empty=True, name=parentName)
+        cmds.matchTransform(parentGrp, obj)
+
+        currentParent = cmds.listRelatives(obj, parent=True)
+        
+        if currentParent:
+            cmds.parent(parentGrp, currentParent[0])
+
+        cmds.parent(obj, parentGrp)
+        parents.append(parentGrp)
+
+    cmds.select(parents, replace=True)
+
+def matchTransformEach():
+    sel = cmds.ls(selection=True)
     
+    if not sel:
+        return
+    
+    count = len(sel)
+    
+    if count % 2 != 0:
+        cmds.warning(f"Please select an even number of objects.")
+        return
+    
+    half = count // 2
+    sources = sel[:half]
+    targets = sel[half:]
+    
+    for i in range(half):
+        cmds.matchTransform(sources[i], targets[i], position=True, rotation=True, scale=True)
+
 openSuyeonToolkit()
