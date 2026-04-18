@@ -293,15 +293,21 @@ def toggleAttributeLock(lock, checkboxGrp):
             cmds.setAttr((sel + ".v"), k=keyable, l=locked)
 
 def resetTransformValue(type = None):
+    transformChannels = {
+        'translate': [('tx', 0), ('ty', 0), ('tz', 0)],
+        'rotate': [('rx', 0), ('ry', 0), ('rz', 0)],
+        'scale': [('sx', 1), ('sy', 1), ('sz', 1)],
+    }
+    
+    targetTypes = [type] if type else ['translate', 'rotate', 'scale']
+    
     for sel in cmds.ls(selection=True):
-        if type is None or type == 'translate':
-            cmds.setAttr(f'{sel}.translate', 0, 0, 0)
-
-        if type is None or type == 'rotate':
-            cmds.setAttr(f'{sel}.rotate', 0, 0, 0)
-        
-        if type is None or type == 'scale':
-            cmds.setAttr(f'{sel}.scale', 1, 1, 1)
+        for transformType in targetTypes:
+            for attr, defaultVal in transformChannels[transformType]:
+                try:
+                    cmds.setAttr(f'{sel}.{attr}', defaultVal)
+                except RuntimeError:
+                    pass
 
 def removeKeyframes(all):
     currentTime = cmds.currentTime(query=True)
