@@ -148,17 +148,17 @@ def createRigTab():
 
     prefixField = cmds.textField(height=24, placeholderText='prefix')
     suffixField = cmds.textField(height=24, placeholderText='suffix')
-    numLabel = cmds.text(label='{Sel Num}', align='left', height=20)
+    startNumField = cmds.intField(value=1, height=24)
 
     cmds.formLayout(formLayout, edit=True,
                     attachForm=[(prefixField, 'top', 0), (prefixField, 'left', 0), (suffixField, 'right', 0)],
-                    attachControl=[(prefixField, 'right', 5, numLabel), 
-                                   (suffixField, 'left', 5, numLabel)],
-                    attachPosition=[(numLabel, 'left', 0, 50)])
+                    attachControl=[(prefixField, 'right', 5, startNumField), 
+                                   (suffixField, 'left', 5, startNumField)],
+                    attachPosition=[(startNumField, 'left', 0, 50)])
 
     cmds.setParent('..')
 
-    cmds.button(label="Rename", width=70, command=lambda *_: renameSelections(prefixField, suffixField))
+    cmds.button(label="Rename", width=70, command=lambda *_: renameSelections(prefixField, suffixField, startNumField))
 
     cmds.setParent('..')
 
@@ -380,12 +380,13 @@ def combineCurves():
 
     cmds.delete(shapeTransforms)
 
-def renameSelections(prefixField, suffixField):
+def renameSelections(prefixField, suffixField, startNumField):
     prefix = cmds.textField(prefixField, query=True, text=True)
     suffix = cmds.textField(suffixField, query=True, text=True)
+    startNum = cmds.intField(startNumField, query=True, value=True)
 
-    for num, sel in enumerate(cmds.ls(selection=True, uuid=True), start=1):
-        cmds.rename(cmds.ls(sel), f'{prefix}{num}{suffix}')
+    for num, sel in enumerate(cmds.ls(selection=True, uuid=True)):
+        cmds.rename(cmds.ls(sel), f'{prefix}{startNum + num}{suffix}')
         
 def createDummyController(fwdAxisRadioCollection):
     selectedBtn = cmds.radioCollection(fwdAxisRadioCollection, query=True, select=True)
