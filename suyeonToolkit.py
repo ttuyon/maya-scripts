@@ -106,28 +106,35 @@ def createRigTab():
 
     # 특정 타입의 자식 노드만 선택
     # IDEA: 현재 선택된 오브젝트의 타입을 가져와서 그 노드를 선택하는 기능, 프리셋 드롭다운에 특정 노드 타입들 나열하여 선택 가능하도록
-    selJntHierBtn = cmds.button(label="Select Joint Hierarchy", command=lambda *_: selectJointHierarchy())
+    selJntHierBtn = cmds.button(label="Sel Jnt Hierarchy", command=lambda *_: selectJointHierarchy())
     
     # 여러 개의 커브를 하나로 만들기
-    combineCrvBtn = cmds.button(label="Combine Curves", command=lambda *_: combineCurves())
+    combineCrvBtn = cmds.button(label="Combine Crvs", command=lambda *_: combineCurves())
+    
+    # 오프셋 부모 만들기
+    createParentBtn = cmds.button(label="Create Parent", command=lambda *_: createParent())
+
 
     cmds.formLayout(formLayout, edit=True, 
-                    attachPosition=[(selJntHierBtn, 'left', 0, 0), (selJntHierBtn, 'right', 5, 50), 
-                                    (combineCrvBtn, 'left', 5, 50), (combineCrvBtn, 'right', 0, 100)])
+                    # attachForm=[(matXFormEachBtn, 'top', 26), (matTranslateEachBtn, 'top', 26)],
+                    attachPosition=[(createParentBtn, 'left', 0, 0), (createParentBtn, 'right', 1, 33.33), 
+                                    (combineCrvBtn, 'left', 1, 33.33), (combineCrvBtn, 'right', 1, 66.67),
+                                    (selJntHierBtn, 'left', 1, 66.67), (selJntHierBtn, 'right', 0, 100)])
+                                    # (matXFormEachBtn, 'left', 0, 0), (matXFormEachBtn, 'right', 1, 50), 
+                                    # (matTranslateEachBtn, 'left', 1, 50), (matTranslateEachBtn, 'right', 0, 100)])
     
     cmds.setParent('..')
 
     formLayout = cmds.formLayout(numberOfDivisions=100)
-
-    # 오프셋 부모 만들기
-    createParentBtn = cmds.button(label="Create Parent", command=lambda *_: createParent())
     
     # MatchTransform
-    matXFormEachBtn = cmds.button(label="Match xform Each", command=lambda *_: matchTransformEach())
+    matXFormEachBtn = cmds.button(label="Match Xform Each", command=lambda *_: matchTransformEach())
+    matTranslateEachBtn = cmds.button(label="Match Position Each", command=lambda *_: matchTransformEach(position=True, rotation=False, scale=False))
 
     cmds.formLayout(formLayout, edit=True, 
-                    attachPosition=[(createParentBtn, 'left', 0, 0), (createParentBtn, 'right', 5, 50), 
-                                    (matXFormEachBtn, 'left', 5, 50), (matXFormEachBtn, 'right', 0, 100)])
+                    attachPosition=[(matXFormEachBtn, 'left', 0, 0), (matXFormEachBtn, 'right', 5, 50), 
+                                    (matTranslateEachBtn, 'left', 5, 50), (matTranslateEachBtn, 'right', 0, 100)])
+    
 
     cmds.setParent('..')
 
@@ -430,7 +437,7 @@ def createParent():
 
     cmds.select(parents, replace=True)
 
-def matchTransformEach():
+def matchTransformEach(position=True, rotation=True, scale=True):
     sel = cmds.ls(selection=True)
     
     if not sel:
@@ -447,6 +454,6 @@ def matchTransformEach():
     targets = sel[half:]
     
     for i in range(half):
-        cmds.matchTransform(sources[i], targets[i], position=True, rotation=True, scale=True)
+        cmds.matchTransform(sources[i], targets[i], position=position, rotation=rotation, scale=scale)
 
 openSuyeonToolkit()
