@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
+import re
 
 #------------------------------------------------------------------
 # UI
@@ -148,7 +149,7 @@ def createRigTab():
 
     prefixField = cmds.textField(height=24, placeholderText='prefix')
     suffixField = cmds.textField(height=24, placeholderText='suffix')
-    startNumField = cmds.intField(value=1, height=24)
+    startNumField = cmds.textField(height=24, text="01")
 
     cmds.formLayout(formLayout, edit=True,
                     attachForm=[(prefixField, 'top', 0), (prefixField, 'left', 0), (suffixField, 'right', 0)],
@@ -351,7 +352,7 @@ def selectJointHierarchy():
     for parent in parents:
         if cmds.objectType(parent) == 'joint':
             joints.append(parent)
-            
+
         children = cmds.listRelatives(parent, allDescendents=True, fullPath=True, type='joint')
 
         if children is not None:
@@ -384,10 +385,19 @@ def combineCurves():
 def renameSelections(prefixField, suffixField, startNumField):
     prefix = cmds.textField(prefixField, query=True, text=True)
     suffix = cmds.textField(suffixField, query=True, text=True)
-    startNum = cmds.intField(startNumField, query=True, value=True)
 
-    for num, sel in enumerate(cmds.ls(selection=True, uuid=True)):
-        cmds.rename(cmds.ls(sel), f'{prefix}{startNum + num}{suffix}')
+    startNum = re.search(r'\d+', cmds.textField(startNumField, query=True, text=True))
+    padding = 1
+
+    if startNum:
+        startNum = startNum.group()
+        padding = len(startNum)
+        startNum = int(startNum)
+    else:
+        startNum = 1
+
+    for index, sel in enumerate(cmds.ls(selection=True, uuid=True)):
+        cmds.rename(cmds.ls(sel), f'{prefix}{(startNum + index):0{padding}}{suffix}')
         
 def createDummyController(fwdAxisRadioCollection):
     selectedBtn = cmds.radioCollection(fwdAxisRadioCollection, query=True, select=True)
