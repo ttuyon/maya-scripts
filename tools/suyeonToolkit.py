@@ -346,17 +346,18 @@ def setLocalRotationAxisVisibility(visible):
 
 def selectJointHierarchy():
     parents = cmds.ls(selection=True)
-    hierarchy = []
+    joints = []
 
     for parent in parents:
-        children = cmds.listRelatives(parent, allDescendents=True, fullPath=True)
+        if cmds.objectType(parent) == 'joint':
+            joints.append(parent)
+            
+        children = cmds.listRelatives(parent, allDescendents=True, fullPath=True, type='joint')
 
         if children is not None:
-            hierarchy += children
+            joints += children
 
-    joints = [obj for obj in hierarchy if cmds.objectType(obj) == 'joint']
-
-    if joints:
+    if len(joints) > 0:
         cmds.select(joints, replace=True)
     else:
         cmds.select(clear=True)
